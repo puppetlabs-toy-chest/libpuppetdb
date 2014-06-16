@@ -1,0 +1,6 @@
+*.o
+CMakeCache.txt
+/build/
+/CMakeFiles/
+/test/Makefile
+/examples/example
