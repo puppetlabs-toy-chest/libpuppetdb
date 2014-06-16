@@ -2,12 +2,13 @@
 #define PUPPETDBQUERY_INCLUDE_PUPPETDB_QUERY_H_
 
 
-/* REQUIREMENTS
+/*
+ * REQUIREMENTS
  * - multiple queries to puppetdb, once a connection is set
+ * - synchronous
  *
  * ASSUMPTIONS
  * - C++11
- * - synchronous
  * - query format (query string is optional):
  *   {prot}://{hostname}:{port}/{version}/{endpoint}?query=<query_string>
  * - it is up to the client program to provide the query string in
@@ -45,9 +46,9 @@ static const ApiVersion API_VERSION_DEFAULT {ApiVersion::v3};
 
 // Error codes (NB: starting at 100 to avoid clashing with curl ones)
 enum class ErrorCode{
-    OK                   = 100,
-    INVALID_CONNECTION   = 101,
-    INVALID_QUERY        = 102
+    OK = 100,
+    INVALID_CONNECTION = 101,
+    INVALID_QUERY = 102
 };
 
 // Utility function
@@ -62,15 +63,6 @@ inline bool fileExists (const std::string& file_path) {
 // Query
 
 class Query {
-
-    // Endpoint
-    std::string endpoint_;
-
-    // Query string
-    std::string query_string_;
-
-    // Keeps track of invalid initialization and query status
-    int error_code_;
 
   public:
 
@@ -103,6 +95,17 @@ class Query {
         }
         return endpoint_ + "?query=" + query_string_;
     }
+
+  private:
+
+    // Endpoint
+    std::string endpoint_;
+
+    // Query string
+    std::string query_string_;
+
+    // Keeps track of invalid initialization and query status
+    int error_code_;
 };
 
 
@@ -125,23 +128,6 @@ struct QueryResult {
 
 class PuppetdbConnector {
 
-    // PuppetDB host, port, and api version
-    std::string hostname_;
-    int port_;
-    ApiVersion api_version_;
-
-    // File paths used for the SSL connection
-    std::string ca_crt_path_;
-    std::string client_crt_path_;
-    std::string client_key_path_;
-
-    // SSL flag
-    bool is_secure_;
-
-    // This mimics RAII (no exception handling - flags failures)
-    bool is_valid_;
-    std::string error_msg_;
-
   public:
 
     /// Constructor for HTTP connector
@@ -156,7 +142,6 @@ class PuppetdbConnector {
           error_msg_ {} {
         checkHostname();
     }
-
 
     /// Constructor for SSL connector
     PuppetdbConnector(const std::string& hostname,
@@ -173,7 +158,7 @@ class PuppetdbConnector {
           client_key_path_ {client_key_path},
           is_secure_ {true},
           is_valid_ {true},
-          error_msg_ {}  {
+          error_msg_ {} {
 
         if (!checkHostname()) {
             return;
@@ -217,6 +202,23 @@ class PuppetdbConnector {
     }
 
   private:
+
+    // PuppetDB host, port, and api version
+    std::string hostname_;
+    int port_;
+    ApiVersion api_version_;
+
+    // File paths used for the SSL connection
+    std::string ca_crt_path_;
+    std::string client_crt_path_;
+    std::string client_key_path_;
+
+    // SSL flag
+    bool is_secure_;
+
+    // This mimics RAII (no exception handling - flags failures)
+    bool is_valid_;
+    std::string error_msg_;
 
     bool checkHostname() {
         if (hostname_.empty()) {
