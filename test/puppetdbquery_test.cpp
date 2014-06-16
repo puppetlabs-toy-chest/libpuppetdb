@@ -95,7 +95,6 @@ TEST_F(QueryTest, toStringWithQueryString) {
 class ConnectionTest : public ::testing::Test {
 };
 
-
 TEST_F(ConnectionTest, ConnectWithoutSSL) {
     PuppetdbConnector connector {"spam", 42, ApiVersion::v2};
 
