@@ -19,32 +19,6 @@
  */
 
 
-// DONE:
-//  - set testing framework: cmake & gtest/gmock
-//  - study: puppetdb
-//  - study: curl
-//  - don't use the function format to initialize members
-//  - compile and test on CentOS
-//  - curl writeup callback to retrieve result; nb:
-//    it CANNOT be a non-static class member function
-//  - execute query / handle errors: curl
-//  - refactor curl setup code: http & https
-//  - check libcurl at run time with curl_version_info(): ssl check
-//  - deal with error codes and provide error messages
-
-// TODO deal with puppetdb paging
-
-// TODO url encode query strings
-
-// TODO parse json results and return an appropriate container based
-//      on the query endpoint (implement it with template)
-
-// TODO check documentation
-
-// TODO write README.md
-
-
-
 #include <string>
 #include <vector>
 #include <map>
