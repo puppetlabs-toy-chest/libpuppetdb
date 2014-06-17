@@ -1,17 +1,17 @@
 /*
-    puppetdbquery_test.cpp
+    libpuppetdb_test.cpp
     ======================
 
-    PuppetDB Query unit tests.
+    libpuppetdb unit tests.
     Requires: googletest, googlemock.
 
 */
 
 
-#ifndef PUPPETDBQUERY_TEST_PUPPETDB_QUERY_TEST_H_
-#define PUPPETDBQUERY_TEST_PUPPETDB_QUERY_TEST_H_
+#ifndef LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
+#define LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
 
-#include "../include/puppetdbquery/puppetdbquery.h"
+#include "../include/libpuppetdb/libpuppetdb.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <chrono>
@@ -19,7 +19,7 @@
 // To test SSL with puppet agent certificates
 // #define PUPET_AGENT_TEST
 
-namespace PuppetdbQuery {
+namespace LibPuppetdb {
 
 
 // Mock classes
@@ -216,6 +216,6 @@ TEST_F(ConnectionTest, multipleHttpQueries) {
     }
 #endif
 
-}  // namespace PuppetdbQuery
+}  // namespace LibPuppetdb
 
-#endif  // PUPPETDBQUERY_TEST_PUPPETDB_QUERY_TEST_H_
+#endif  // LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_

@@ -1,5 +1,5 @@
-#ifndef PUPPETDBQUERY_INCLUDE_PUPPETDB_QUERY_H_
-#define PUPPETDBQUERY_INCLUDE_PUPPETDB_QUERY_H_
+#ifndef LIBPUPPETDB_INCLUDE_PUPPETDB_QUERY_H_
+#define LIBPUPPETDB_INCLUDE_PUPPETDB_QUERY_H_
 
 
 /*
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace PuppetdbQuery {
+namespace LibPuppetdb {
 
 // puppedbquery version
 static const std::string VERSION_STRING { "0.1.0" };
@@ -342,6 +342,6 @@ class PuppetdbConnector {
 };
 
 
-}  // namespace PuppetdbQuery
+}  // namespace LibPuppetdb
 
-#endif  // PUPPETDBQUERY_INCLUDE_PUPPETDB_QUERY_H_
+#endif  // LIBPUPPETDB_INCLUDE_PUPPETDB_QUERY_H_

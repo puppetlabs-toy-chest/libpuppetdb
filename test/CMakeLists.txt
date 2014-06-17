@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6.2)
-PROJECT (puppetdbquery_test C CXX)
+PROJECT (libpuppetdb_test C CXX)
 
 # Set specfic compile flags
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -11,7 +11,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 # Library settings
-SET (APPLICATION_NAME "puppetdbquery")
+SET (APPLICATION_NAME "libpuppetdb")
 SET (APPLICATION_CODENAME "${PROJECT_NAME}")
 SET (APPLICATION_COPYRIGHT_YEARS "2013")
 SET (APPLICATION_VERSION_MAJOR 0)
@@ -43,7 +43,7 @@ INCLUDE_DIRECTORIES("${MAINFOLDER}/../include")
 # Test configuration
 
 SET (SOURCES
-    puppetdbquery_test.cpp
+    libpuppetdb_test.cpp
 )
 
 SET (test_BIN ${PROJECT_NAME})

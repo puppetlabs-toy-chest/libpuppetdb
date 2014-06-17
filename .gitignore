@@ -4,5 +4,6 @@
 /test/CMakeFiles/
 /test/Makefile
 /test/CMakeCache.txt
-/test/puppetdbquery_test
+/test/libpuppetdb_test
+/test/cmake_install.cmake
 /examples/example
