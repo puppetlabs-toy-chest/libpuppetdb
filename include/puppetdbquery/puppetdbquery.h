@@ -3,15 +3,17 @@
 
 
 /*
- * Simple library to execute Puppet DB queries.
- * To use it, create a PuppetdbConnector instance (SSL-enabled or not)
- * and call performQuery() on Query instances. See example1.cpp.
+ *                        libpuppetdb
  *
- * REQUIREMENTS
- * - multiple queries to puppetdb, once a connection is set
- * - synchronous
+ * Simple library to execute Puppet DB queries in a synchronous.
+ * To use it, create a PuppetdbConnector instance (SSL-enabled or not)
+ * and call performQuery() on Query instances.
+ * Multiple queries can be executed once a connection is set.
+ * See example1.cpp and refer to README.
+ *
  *
  * ASSUMPTIONS
+ *
  * - C++11
  * - query format (query string is optional):
  *   {prot}://{hostname}:{port}/{version}/{endpoint}?query=<query_string>
@@ -20,6 +22,7 @@
  *      - the interface expects the query string as a string argument;
  *      - the interface returns the json result data as a string.
  * - secure connection requires ca_cert, node_cert, and private_key.
+ *
  */
 
 
@@ -33,22 +36,22 @@
 namespace PuppetdbQuery {
 
 // puppedbquery version
-static const std::string VERSION_STRING {"0.1.0"};
+static const std::string VERSION_STRING { "0.1.0" };
 
 // Protocol and ports
-static const int PUPPETDB_HTTP_PORT {8080};
-static const int PUPPETDB_SECURE_PORT {8081};
+static const int PUPPETDB_HTTP_PORT { 8080 };
+static const int PUPPETDB_SECURE_PORT { 8081 };
 
 // PuppetDB api version
-enum class ApiVersion {v2, v3};
+enum class ApiVersion { v2, v3 };
 std::map<ApiVersion, const std::string> ApiVersionsMap {
-    {ApiVersion::v2, "v2"},
-    {ApiVersion::v3, "v3"}
+    { ApiVersion::v2, "v2" },
+    { ApiVersion::v3, "v3" }
 };
-static const ApiVersion API_VERSION_DEFAULT {ApiVersion::v3};
+static const ApiVersion API_VERSION_DEFAULT { ApiVersion::v3 };
 
 // Error codes (NB: starting at 100 to avoid clashing with curl ones)
-enum class ErrorCode{
+enum class ErrorCode {
     OK = 100,
     INVALID_CONNECTION = 101,
     INVALID_QUERY = 102,
@@ -57,8 +60,8 @@ enum class ErrorCode{
 
 // Utility function
 inline bool fileExists (const std::string& file_path) {
-    std::ifstream f_s {file_path};
-    bool exists {f_s.good()};
+    std::ifstream f_s { file_path };
+    bool exists { f_s.good() };
     f_s.close();
     return exists;
 }
@@ -72,8 +75,8 @@ class Query {
 
     /// The query string must be URL-encoded
     Query(std::string endpoint, std::string query_string = "")
-        : endpoint_ {endpoint},
-          query_string_ {query_string} {
+        : endpoint_ { endpoint },
+          query_string_ { query_string } {
         if (endpoint.empty()) {
             error_code_ = static_cast<int>(ErrorCode::INVALID_QUERY);
         } else {
@@ -135,16 +138,17 @@ class PuppetdbConnector {
 
   public:
 
+    PuppetdbConnector() = delete;
+
     /// Constructor for HTTP connector
     PuppetdbConnector(const std::string& hostname,
                       const int port = PUPPETDB_HTTP_PORT,
                       const ApiVersion api_version = API_VERSION_DEFAULT)
-        : hostname_ {hostname},
-          port_ {port},
-          api_version_ {api_version},
-          is_secure_ {false},
-          is_valid_ {true},
-          error_msg_ {} {
+        : hostname_ { hostname },
+          port_ { port },
+          api_version_ { api_version },
+          is_secure_ { false },
+          is_valid_ { true } {
         checkHostname();
     }
 
@@ -155,15 +159,14 @@ class PuppetdbConnector {
                       const std::string& client_key_path,
                       const int port = PUPPETDB_SECURE_PORT,
                       const ApiVersion api_version = API_VERSION_DEFAULT)
-        : hostname_ {hostname},
-          port_ {port},
-          api_version_ {api_version},
-          ca_crt_path_ {ca_crt_path},
-          client_crt_path_ {client_crt_path},
-          client_key_path_ {client_key_path},
-          is_secure_ {true},
-          is_valid_ {true},
-          error_msg_ {} {
+        : hostname_ { hostname },
+          port_ { port },
+          api_version_ { api_version },
+          ca_crt_path_ { ca_crt_path },
+          client_crt_path_ { client_crt_path },
+          client_key_path_ { client_key_path },
+          is_secure_ { true },
+          is_valid_ { true } {
 
         if (!checkHostname()) {
             return;
@@ -203,7 +206,7 @@ class PuppetdbConnector {
     /// In case a query string is specified, the method returns an
     /// empty string if the encoding fails.
     virtual std::string getQueryUrl(Query& query, CURL* curl) {
-        std::string protocol {isSecure() ? "https" : "http"};
+        std::string protocol { isSecure() ? "https" : "http" };
         std::string endpoint_and_query = query.getEndpoint();
         std::string query_str = query.getQueryString();
 
@@ -216,7 +219,7 @@ class PuppetdbConnector {
             if (encoded_query == nullptr) {
                 return "";
             }
-            endpoint_and_query += "?" + std::string {encoded_query};
+            endpoint_and_query += "?" + std::string { encoded_query };
 
             // Free the memory used by curl_easy_escape()
             curl_free(encoded_query);
@@ -266,8 +269,8 @@ class PuppetdbConnector {
     }
 
     bool checkCertificates() {
-        for (auto attr : std::vector<std::string> {hostname_, ca_crt_path_,
-                client_crt_path_, client_key_path_}) {
+        for (auto attr : std::vector<std::string> { hostname_, ca_crt_path_,
+                client_crt_path_, client_key_path_ }) {
             if (attr.empty()) {
                 is_valid_ = false;
                 error_msg_ = "Not all certificates were specified.";
@@ -275,8 +278,8 @@ class PuppetdbConnector {
             }
         }
 
-        for (auto attr : std::vector<std::string> {ca_crt_path_,
-                client_crt_path_, client_key_path_}) {
+        for (auto attr : std::vector<std::string> { ca_crt_path_,
+                client_crt_path_, client_key_path_ }) {
             if (!fileExists(attr)) {
                 is_valid_ = false;
                 error_msg_ = "Invalid certificate: " + attr;
@@ -296,11 +299,11 @@ class PuppetdbConnector {
         std::string result_buffer {};
 
         // libcurl handle
-        CURL* curl {curl_easy_init()};
+        CURL* curl { curl_easy_init() };
 
         if(curl) {
 
-            std::string url {getQueryUrl(query, curl)};
+            std::string url { getQueryUrl(query, curl) };
 
             if (url.empty()) {
                 query.setErrorCode(static_cast<int>(
