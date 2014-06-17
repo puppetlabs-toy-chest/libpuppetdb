@@ -27,7 +27,7 @@ namespace PuppetdbQuery {
 class MockURLConnector : public PuppetdbConnector {
   public:
     using PuppetdbConnector::PuppetdbConnector;
-    MOCK_METHOD1(getQueryUrl, std::string(Query& query));
+    MOCK_METHOD2(getQueryUrl, std::string(Query& query, CURL* curl));
 };
 
 
@@ -41,8 +41,8 @@ class MockSetupConnector : public PuppetdbConnector {
 
 // Testing the PuppetDB query
 
-class QueryTest : public ::testing::Test {
-};
+class QueryTest : public ::testing::Test {};
+
 
 TEST_F(QueryTest, validQuery) {
     Query query {"facter"};
@@ -73,27 +73,43 @@ TEST_F(QueryTest, setAndGetErrorCode) {
     EXPECT_EQ(error_code, query.getErrorCode());
 }
 
-TEST_F(QueryTest, toString) {
+TEST_F(QueryTest, getQueryComponents) {
     std::string endpoint {"eggs"};
     Query query {endpoint};
 
-    EXPECT_EQ(endpoint, query.toString());
+    EXPECT_EQ(endpoint, query.getEndpoint());
+    EXPECT_EQ("", query.getQueryString());
 }
 
-TEST_F(QueryTest, toStringWithQueryString) {
+TEST_F(QueryTest, getQueryComponentsWithQueryString) {
     std::string endpoint {"foo"};
     std::string query_string {"bar"};
     std::string expected_query {endpoint + "?query=" + query_string};
     Query query {endpoint, query_string};
 
-    EXPECT_EQ(expected_query , query.toString());
+    std::string obtained_query {query.getEndpoint() + "?query="
+                                + query.getQueryString()};
+    EXPECT_EQ(expected_query , obtained_query);
 }
 
 
 // Testing the PuppetDB connector
 
 class ConnectionTest : public ::testing::Test {
+
+  protected:
+
+    CURL* curl_handle_;
+
+    virtual void SetUp() {
+        curl_handle_ = curl_easy_init();
+    }
+
+    virtual void TearDown() {
+        curl_easy_cleanup(curl_handle_);
+    }
 };
+
 
 TEST_F(ConnectionTest, ConnectWithoutSSL) {
     PuppetdbConnector connector {"spam", 42, ApiVersion::v2};
@@ -115,7 +131,7 @@ TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
 
     EXPECT_FALSE(connector.isSecure());
     EXPECT_TRUE(connector.isValid());
-    EXPECT_EQ(expected_url, connector.getQueryUrl(query));
+    EXPECT_EQ(expected_url, connector.getQueryUrl(query, curl_handle_));
 }
 
 TEST_F(ConnectionTest, ConnectWithoutHost) {
@@ -161,26 +177,26 @@ TEST_F(ConnectionTest, performQueryWithSimpleResult) {
 }
 
 TEST_F(ConnectionTest, httpQuery) {
-    MockURLConnector connector {"bar"};
+    MockURLConnector mock_connector {"bar"};
     Query query {"foo"};
-    EXPECT_CALL(connector, getQueryUrl(testing::_))
+    EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"));
 
-    std::string result = connector.performQuery(query);
+    std::string result = mock_connector.performQuery(query);
 
     EXPECT_FALSE(result.size() == 0);
 }
 
 TEST_F(ConnectionTest, multipleHttpQueries) {
-    MockURLConnector connector {"spam"};
+    MockURLConnector mock_connector {"spam"};
     Query first_query {"eggs"};
     Query second_query {"beans"};
-    EXPECT_CALL(connector, getQueryUrl(testing::_))
+    EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"))
         .WillOnce(testing::Return("http://goolge.com"));
 
-    std::string first_result = connector.performQuery(first_query);
-    std::string second_result = connector.performQuery(second_query);
+    std::string first_result = mock_connector.performQuery(first_query);
+    std::string second_result = mock_connector.performQuery(second_query);
 
     EXPECT_FALSE(first_result.size() == 0);
     EXPECT_FALSE(second_result.size() == 0);
