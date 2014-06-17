@@ -3,6 +3,10 @@
 
 
 /*
+ * Simple library to execute Puppet DB queries.
+ * To use it, create a PuppetdbConnector instance (SSL-enabled or not)
+ * and call performQuery() on Query instances. See example1.cpp.
+ *
  * REQUIREMENTS
  * - multiple queries to puppetdb, once a connection is set
  * - synchronous
@@ -13,8 +17,7 @@
  *   {prot}://{hostname}:{port}/{version}/{endpoint}?query=<query_string>
  * - it is up to the client program to provide the query string in
  *   the puppetdb language and to process results, i.e.:
- *      - the interface expects the query string as a string argument,
- *        already URL-encoded;
+ *      - the interface expects the query string as a string argument;
  *      - the interface returns the json result data as a string.
  * - secure connection requires ca_cert, node_cert, and private_key.
  */
@@ -48,7 +51,8 @@ static const ApiVersion API_VERSION_DEFAULT {ApiVersion::v3};
 enum class ErrorCode{
     OK = 100,
     INVALID_CONNECTION = 101,
-    INVALID_QUERY = 102
+    INVALID_QUERY = 102,
+    URL_ENCODING_FAILURE = 103
 };
 
 // Utility function
@@ -89,11 +93,12 @@ class Query {
         error_code_ = error_code;
     }
 
-    std::string toString() const {
-        if (query_string_.empty()) {
-            return endpoint_;
-        }
-        return endpoint_ + "?query=" + query_string_;
+    std::string getEndpoint() {
+        return endpoint_;
+    }
+
+    std::string getQueryString() {
+        return query_string_;
     }
 
   private:
@@ -182,7 +187,8 @@ class PuppetdbConnector {
     }
 
     /// Returns the PuppetDB query result (json format) as a string.
-    /// Returns an empty string in case of an invalid query or connector.
+    /// Returns an empty string in case of an invalid query or
+    /// connector.
     std::string performQuery(Query& query) {
         if (isValid()) {
             if (query.isValid()) {
@@ -194,11 +200,30 @@ class PuppetdbConnector {
         return "";
     }
 
-    // NB: this is public virtual to enable unit testing and mocking
-    virtual std::string getQueryUrl(Query& query) {
+    /// In case a query string is specified, the method returns an
+    /// empty string if the encoding fails.
+    virtual std::string getQueryUrl(Query& query, CURL* curl) {
         std::string protocol {isSecure() ? "https" : "http"};
+        std::string endpoint_and_query = query.getEndpoint();
+        std::string query_str = query.getQueryString();
+
+        if (!query_str.empty()) {
+
+            // URL encode
+            char* encoded_query = curl_easy_escape(
+                curl, ("query=" + query_str).c_str(), 0);
+
+            if (encoded_query == nullptr) {
+                return "";
+            }
+            endpoint_and_query += "?" + std::string {encoded_query};
+
+            // Free the memory used by curl_easy_escape()
+            curl_free(encoded_query);
+        }
+
         return protocol + "://" + hostname_ + ":" + std::to_string(port_)
-               + "/" + getApiVersion() + "/" + query.toString();
+               + "/" + getApiVersion() + "/" + endpoint_and_query;
     }
 
   private:
@@ -270,25 +295,36 @@ class PuppetdbConnector {
 
         std::string result_buffer {};
 
+        // libcurl handle
         CURL* curl {curl_easy_init()};
 
         if(curl) {
-            std::string url = getQueryUrl(query);
 
-            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, QueryResult::callback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result_buffer);
+            std::string url {getQueryUrl(query, curl)};
 
-            if (isSecure()) {
-                setSSLOptions(curl);
+            if (url.empty()) {
+                query.setErrorCode(static_cast<int>(
+                    ErrorCode::URL_ENCODING_FAILURE));
+            } else {
+
+                // Configure the libcurl handle
+                curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                                 QueryResult::callback);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result_buffer);
+
+                if (isSecure()) {
+                    setSSLOptions(curl);
+                }
+
+                // Perform the query
+                CURLcode return_code {curl_easy_perform(curl)};
+
+                if (return_code != CURLE_OK) {
+                    query.setErrorCode(static_cast<int>(return_code));
+                }
             }
-
-            CURLcode return_code {curl_easy_perform(curl)};
-
-            if (return_code != CURLE_OK) {
-                query.setErrorCode(static_cast<int>(return_code));
-            }
-
+            // Close all libcurl connections
             curl_easy_cleanup(curl);
         }
         return result_buffer;

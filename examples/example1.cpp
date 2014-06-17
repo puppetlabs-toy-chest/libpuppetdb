@@ -2,7 +2,7 @@
     example1.cpp
     ============
 
-    Basic usage of the puppetdbquery
+    Basic usage of the puppetdbquery (without SSL)
 
     Compile with:
         c++ -std=c++11 -lcurl example1.cpp -o example
@@ -14,6 +14,7 @@
         ./example hostname puppetdb_endpoint puppetdb_query
     For instance:
         ./exmple localhost facts ""
+        ./example localhost nodes '["=", "name", "master"]'
     after running:
         ssh -NL 8080:localhost:8080 {user}@{puppetdb host} -f
 */
