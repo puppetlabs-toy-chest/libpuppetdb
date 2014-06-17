@@ -1,6 +1,8 @@
 *.o
-CMakeCache.txt
-/build/
-/CMakeFiles/
+/test/src/
+/test/tmp/
+/test/CMakeFiles/
 /test/Makefile
+/test/CMakeCache.txt
+/test/puppetdbquery_test
 /examples/example
