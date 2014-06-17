@@ -11,7 +11,7 @@ Both both SSL (HTTP) and non-SSL (HTTPS) queries are supported.
 To use libpuppetdb in your code, you first create a PuppetdbConnector object.
 You do that by specifying the Puppet DB host and, for secure connections, the
 SSL certificates. Then you execute queries by instantiating Query objects and
-calling PuppetdbConnector::performQuery, that method returns the query results
+calling PuppetdbConnector::performQuery, that returns the query results
 (json format) as a string.
 
 ## Errors
