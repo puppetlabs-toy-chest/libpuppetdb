@@ -26,14 +26,16 @@ namespace LibPuppetdb {
 
 class MockURLConnector : public PuppetdbConnector {
   public:
-    using PuppetdbConnector::PuppetdbConnector;
+    MockURLConnector(std::string host_name)
+        : PuppetdbConnector::PuppetdbConnector(host_name) {}
     MOCK_METHOD2(getQueryUrl, std::string(Query& query, CURL* curl));
 };
 
 
 class MockSetupConnector : public PuppetdbConnector {
   public:
-    using PuppetdbConnector::PuppetdbConnector;
+    MockSetupConnector(std::string host_name)
+        : PuppetdbConnector::PuppetdbConnector(host_name) {}
     MOCK_METHOD1(setupAndPerform, std::string(Query& query));
 };
 

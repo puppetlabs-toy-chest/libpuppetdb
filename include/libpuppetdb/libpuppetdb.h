@@ -44,7 +44,7 @@ static const int PUPPETDB_SECURE_PORT { 8081 };
 
 // PuppetDB api version
 enum class ApiVersion { v2, v3 };
-std::map<ApiVersion, const std::string> ApiVersionsMap {
+static std::map<ApiVersion, const std::string> ApiVersionsMap {
     { ApiVersion::v2, "v2" },
     { ApiVersion::v3, "v3" }
 };
@@ -60,9 +60,12 @@ enum class ErrorCode {
 
 // Utility function
 inline bool fileExists (const std::string& file_path) {
-    std::ifstream f_s { file_path };
-    bool exists { f_s.good() };
-    f_s.close();
+    bool exists { false };
+    if (!file_path.empty()) {
+        std::ifstream f_s { file_path };
+        exists = f_s.good();
+        f_s.close();
+    }
     return exists;
 }
 
@@ -72,6 +75,8 @@ inline bool fileExists (const std::string& file_path) {
 class Query {
 
   public:
+
+    Query() = delete;
 
     /// The query string must be URL-encoded
     Query(std::string endpoint, std::string query_string = "")
@@ -309,7 +314,6 @@ class PuppetdbConnector {
                 query.setErrorCode(static_cast<int>(
                     ErrorCode::URL_ENCODING_FAILURE));
             } else {
-
                 // Configure the libcurl handle
                 curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
@@ -319,7 +323,6 @@ class PuppetdbConnector {
                 if (isSecure()) {
                     setSSLOptions(curl);
                 }
-
                 // Perform the query
                 CURLcode return_code {curl_easy_perform(curl)};
 
