@@ -29,14 +29,14 @@ int main(int argc, char* argv[]) {
     if (argc != 4)
         return 1;
 
-    std::string hostname {argv[1]};
-    std::string endpoint {argv[2]};
-    std::string query_string {argv[3]};
+    std::string hostname { argv[1] };
+    std::string endpoint { argv[2] };
+    std::string query_string { argv[3] };
 
-    PuppetdbConnector connector {hostname};
-    Query query {endpoint, query_string};
+    PuppetdbConnector connector { hostname };
+    Query query { endpoint, query_string };
 
-    std::string result {connector.performQuery(query)};
+    std::string result { connector.performQuery(query) };
     std::cout << "Return code: " << query.getErrorCode() << "\n";
     std::cout << "Result:\n" << result << "\n\n";
     return 0;

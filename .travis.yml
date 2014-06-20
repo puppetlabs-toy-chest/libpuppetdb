@@ -1,0 +1,27 @@
+language: cpp
+compiler: gcc
+
+before_install:
+  # 'python-software-properties' provides add-apt-repository
+  - sudo apt-get -y install python-software-properties
+  # which is needed to add the ppa that has gcc 4.8
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update
+  # which is needed to install gcc 4.8
+  - sudo apt-get -y install gcc-4.8
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+  # and g++ 4.8
+  - sudo apt-get -y install g++-4.8
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
+  # grab a pre-built cmake 2.8.12 from s3
+  - wget https://s3.amazonaws.com/kylo-pl-bucket/cmake_install.tar.bz2
+  - tar xjvf cmake_install.tar.bz2 --strip 1 -C $HOME
+  # grab curl-dev
+  - sudo apt-get -y install libcurl4-gnutls-dev
+
+script:
+  - cd ./test
+  - ./travis_target.sh
+
+notifications:
+  email: false
