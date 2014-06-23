@@ -91,7 +91,7 @@ TEST_F(QueryTest, getQueryComponentsWithQueryString) {
 
     std::string obtained_query {query.getEndpoint() + "?query="
                                 + query.getQueryString()};
-    EXPECT_EQ(expected_query , obtained_query);
+    EXPECT_EQ(expected_query, obtained_query);
 }
 
 
@@ -134,6 +134,16 @@ TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
     EXPECT_FALSE(connector.isSecure());
     EXPECT_TRUE(connector.isValid());
     EXPECT_EQ(expected_url, connector.getQueryUrl(query, curl_handle_));
+}
+
+TEST_F(ConnectionTest, GetPerformedQueryUrl) {
+    PuppetdbConnector connector {"eggs"};
+    Query query("nodes");
+    std::string expected_url {"http://eggs:8080/v3/nodes"};
+
+    EXPECT_EQ("", connector.getPerformedQueryUrl());
+    connector.performQuery(query);
+    EXPECT_EQ(expected_url, connector.getPerformedQueryUrl());
 }
 
 TEST_F(ConnectionTest, ConnectWithoutHost) {
