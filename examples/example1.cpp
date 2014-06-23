@@ -2,7 +2,7 @@
     example1.cpp
     ============
 
-    Basic usage of the puppetdbquery (without SSL)
+    Basic usage of the libpuppetdb (without SSL)
 
     Compile with:
         c++ -std=c++11 -lcurl example1.cpp -o example
@@ -20,10 +20,10 @@
 */
 
 
-#include "../include/puppetdbquery/puppetdbquery.h"
+#include "../include/libpuppetdb/libpuppetdb.h"
 #include <string>
 
-using namespace PuppetdbQuery;
+using namespace LibPuppetdb;
 
 int main(int argc, char* argv[]) {
     if (argc != 4)
@@ -37,7 +37,8 @@ int main(int argc, char* argv[]) {
     Query query { endpoint, query_string };
 
     std::string result { connector.performQuery(query) };
-    std::cout << "Return code: " << query.getErrorCode() << "\n";
     std::cout << "Result:\n" << result << "\n\n";
+    std::cout << "Return code: " << query.getErrorCode() << "\n";
+    std::cout << "Performed query: " << connector.getPerformedQueryUrl() << "\n";
     return 0;
 }

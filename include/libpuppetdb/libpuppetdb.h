@@ -194,6 +194,10 @@ class PuppetdbConnector {
         return error_msg_;
     }
 
+    std::string getPerformedQueryUrl() const {
+        return performed_query_url_;
+    }
+
     /// Returns the PuppetDB query result (json format) as a string.
     /// Returns an empty string in case of an invalid query or
     /// connector.
@@ -216,15 +220,14 @@ class PuppetdbConnector {
         std::string query_str = query.getQueryString();
 
         if (!query_str.empty()) {
-
             // URL encode
             char* encoded_query = curl_easy_escape(
-                curl, ("query=" + query_str).c_str(), 0);
+                curl, query_str.c_str(), 0);
 
             if (encoded_query == nullptr) {
                 return "";
             }
-            endpoint_and_query += "?" + std::string { encoded_query };
+            endpoint_and_query += "?query=" + std::string { encoded_query };
 
             // Free the memory used by curl_easy_escape()
             curl_free(encoded_query);
@@ -252,6 +255,9 @@ class PuppetdbConnector {
     // This mimics RAII (no exception handling - flags failures)
     bool is_valid_;
     std::string error_msg_;
+
+    // The URL of the performed query
+    std::string performed_query_url_;
 
     bool checkHostname() {
         if (hostname_.empty()) {
@@ -308,14 +314,15 @@ class PuppetdbConnector {
 
         if(curl) {
 
-            std::string url { getQueryUrl(query, curl) };
+            performed_query_url_ = getQueryUrl(query, curl);
 
-            if (url.empty()) {
+            if (performed_query_url_.empty()) {
                 query.setErrorCode(static_cast<int>(
                     ErrorCode::URL_ENCODING_FAILURE));
             } else {
                 // Configure the libcurl handle
-                curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                curl_easy_setopt(curl, CURLOPT_URL,
+                                 performed_query_url_.c_str());
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                                  QueryResult::callback);
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result_buffer);
