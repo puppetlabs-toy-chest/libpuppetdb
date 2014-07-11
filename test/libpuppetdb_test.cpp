@@ -7,7 +7,6 @@
 
 */
 
-
 #ifndef LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
 #define LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
 
@@ -41,7 +40,7 @@ class MockSetupConnector : public PuppetdbConnector {
 
 
 
-// Testing the PuppetDB query
+// Testing PuppetDB query
 
 class QueryTest : public ::testing::Test {};
 
@@ -95,7 +94,7 @@ TEST_F(QueryTest, getQueryComponentsWithQueryString) {
 }
 
 
-// Testing the PuppetDB connector
+// Testing PuppetDB connector
 
 class ConnectionTest : public ::testing::Test {
 
