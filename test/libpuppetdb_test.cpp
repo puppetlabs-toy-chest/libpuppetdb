@@ -7,10 +7,6 @@
 
 */
 
-
-#ifndef LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
-#define LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_
-
 #include "../include/libpuppetdb/libpuppetdb.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -229,5 +225,3 @@ TEST_F(ConnectionTest, multipleHttpQueries) {
 #endif
 
 }  // namespace LibPuppetdb
-
-#endif  // LIBPUPPETDB_TEST_PUPPETDB_QUERY_TEST_H_

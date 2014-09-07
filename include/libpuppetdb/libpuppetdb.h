@@ -1,7 +1,6 @@
 #ifndef LIBPUPPETDB_INCLUDE_PUPPETDB_QUERY_H_
 #define LIBPUPPETDB_INCLUDE_PUPPETDB_QUERY_H_
 
-
 /*
  *                        libpuppetdb
  *
@@ -24,7 +23,6 @@
  * - secure connection requires ca_cert, node_cert, and private_key.
  *
  */
-
 
 #include <string>
 #include <vector>
@@ -69,8 +67,9 @@ inline bool fileExists (const std::string& file_path) {
     return exists;
 }
 
-
+//
 // Query
+//
 
 class Query {
 
@@ -121,8 +120,9 @@ class Query {
     int error_code_;
 };
 
-
+//
 // Query result
+//
 
 struct QueryResult {
     char* content;
@@ -136,8 +136,9 @@ struct QueryResult {
     }
 };
 
-
+//
 // Connector
+//
 
 class PuppetdbConnector {
 
@@ -313,7 +314,6 @@ class PuppetdbConnector {
         CURL* curl { curl_easy_init() };
 
         if(curl) {
-
             performed_query_url_ = getQueryUrl(query, curl);
 
             if (performed_query_url_.empty()) {
@@ -348,9 +348,7 @@ class PuppetdbConnector {
         curl_easy_setopt(curl, CURLOPT_SSLKEY, client_key_path_.c_str());
         curl_easy_setopt(curl, CURLOPT_CAINFO, ca_crt_path_.c_str());
     }
-
 };
-
 
 }  // namespace LibPuppetdb
 
