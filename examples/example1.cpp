@@ -4,7 +4,7 @@
 
     Basic usage of the libpuppetdb (without SSL)
 
-    Compile with:
+    On OS X, compile with:
         c++ -std=c++11 -lcurl example1.cpp -o example
 
     By default, puppetdb only accepts http over 8080 as localhost.
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     std::string endpoint { argv[2] };
     std::string query_string { argv[3] };
 
-    PuppetdbConnector connector { hostname };
+    PuppetdbConnector connector { hostname, 8080, ApiVersion::v3 };
     Query query { endpoint, query_string };
 
     std::string result { connector.performQuery(query) };

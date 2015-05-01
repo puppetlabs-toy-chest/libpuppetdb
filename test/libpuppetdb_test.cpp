@@ -118,7 +118,7 @@ TEST_F(ConnectionTest, ValidConnectionWithoutSSL) {
 TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
     PuppetdbConnector connector {"spam"};
     Query query("facts");
-    std::string expected_url {"http://spam:8080/v3/facts"};
+    std::string expected_url {"http://spam:8080/v4/facts"};
 
     EXPECT_FALSE(connector.isSecure());
     EXPECT_TRUE(connector.isValid());
@@ -128,8 +128,7 @@ TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
 TEST_F(ConnectionTest, GetPerformedQueryUrl) {
     PuppetdbConnector connector {"eggs"};
     Query query("nodes");
-    std::string expected_url {"http://eggs:8080/v3/nodes"};
-
+    std::string expected_url {"http://eggs:8080/v4/nodes"};
     EXPECT_EQ("", connector.getPerformedQueryUrl());
     connector.performQuery(query);
     EXPECT_EQ(expected_url, connector.getPerformedQueryUrl());

@@ -7,6 +7,13 @@
  * Simple library to execute Puppet DB queries in a synchronous.
  * To use it, create a PuppetdbConnector instance (SSL-enabled or not)
  * and call performQuery() on Query instances.
+ *
+ * The user can spcecify the puppetdb API version (v2, v3, or v4, as
+ * for the ApiVersion enumeration) when instantiating the connector;
+ * this will only affect the api URL since the query structure does
+ * not change change across the supported versions. Also, the user is
+ * responsible for specifying an endpoint compatible with the version.
+ *
  * Multiple queries can be executed once a connection is set.
  * See example1.cpp and refer to README.
  *
@@ -16,6 +23,8 @@
  * - C++11
  * - query format (query string is optional):
  *   {prot}://{hostname}:{port}/{version}/{endpoint}?query=<query_string>
+ * - it is up to the client program to provide an endpoint compatible
+ *   with the specified API version
  * - it is up to the client program to provide the query string in
  *   the puppetdb language and to process results, i.e.:
  *      - the interface expects the query string as a string argument;
@@ -41,12 +50,13 @@ static const int PUPPETDB_HTTP_PORT { 8080 };
 static const int PUPPETDB_SECURE_PORT { 8081 };
 
 // PuppetDB api version
-enum class ApiVersion { v2, v3 };
+enum class ApiVersion { v2, v3, v4 };
 static std::map<ApiVersion, const std::string> ApiVersionsMap {
     { ApiVersion::v2, "v2" },
-    { ApiVersion::v3, "v3" }
+    { ApiVersion::v3, "v3" },
+    { ApiVersion::v4, "v4" }
 };
-static const ApiVersion API_VERSION_DEFAULT { ApiVersion::v3 };
+static const ApiVersion API_VERSION_DEFAULT { ApiVersion::v4 };
 
 // Error codes (NB: starting at 100 to avoid clashing with curl ones)
 enum class ErrorCode {
