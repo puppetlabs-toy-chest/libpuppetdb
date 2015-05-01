@@ -17,7 +17,6 @@
 
 namespace LibPuppetdb {
 
-
 // Mock classes
 
 class MockURLConnector : public PuppetdbConnector {
@@ -35,12 +34,9 @@ class MockSetupConnector : public PuppetdbConnector {
     MOCK_METHOD1(setupAndPerform, std::string(Query& query));
 };
 
-
-
 // Testing the PuppetDB query
 
 class QueryTest : public ::testing::Test {};
-
 
 TEST_F(QueryTest, validQuery) {
     Query query {"facter"};
@@ -90,13 +86,10 @@ TEST_F(QueryTest, getQueryComponentsWithQueryString) {
     EXPECT_EQ(expected_query, obtained_query);
 }
 
-
 // Testing the PuppetDB connector
 
 class ConnectionTest : public ::testing::Test {
-
   protected:
-
     CURL* curl_handle_;
 
     virtual void SetUp() {
@@ -125,7 +118,7 @@ TEST_F(ConnectionTest, ValidConnectionWithoutSSL) {
 TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
     PuppetdbConnector connector {"spam"};
     Query query("facts");
-    std::string expected_url {"http://spam:8080/v3/facts"};
+    std::string expected_url {"http://spam:8080/v4/facts"};
 
     EXPECT_FALSE(connector.isSecure());
     EXPECT_TRUE(connector.isValid());
@@ -135,8 +128,7 @@ TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
 TEST_F(ConnectionTest, GetPerformedQueryUrl) {
     PuppetdbConnector connector {"eggs"};
     Query query("nodes");
-    std::string expected_url {"http://eggs:8080/v3/nodes"};
-
+    std::string expected_url {"http://eggs:8080/v4/nodes"};
     EXPECT_EQ("", connector.getPerformedQueryUrl());
     connector.performQuery(query);
     EXPECT_EQ(expected_url, connector.getPerformedQueryUrl());
