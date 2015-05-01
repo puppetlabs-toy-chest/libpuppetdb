@@ -72,15 +72,13 @@ inline bool fileExists (const std::string& file_path) {
 //
 
 class Query {
-
   public:
-
     Query() = delete;
 
     /// The query string must be URL-encoded
     Query(std::string endpoint, std::string query_string = "")
-        : endpoint_ { endpoint },
-          query_string_ { query_string } {
+            : endpoint_ { endpoint },
+              query_string_ { query_string } {
         if (endpoint.empty()) {
             error_code_ = static_cast<int>(ErrorCode::INVALID_QUERY);
         } else {
@@ -109,7 +107,6 @@ class Query {
     }
 
   private:
-
     // Endpoint
     std::string endpoint_;
 
@@ -141,20 +138,19 @@ struct QueryResult {
 //
 
 class PuppetdbConnector {
-
   public:
-
     PuppetdbConnector() = delete;
 
     /// Constructor for HTTP connector
     PuppetdbConnector(const std::string& hostname,
                       const int port = PUPPETDB_HTTP_PORT,
                       const ApiVersion api_version = API_VERSION_DEFAULT)
-        : hostname_ { hostname },
-          port_ { port },
-          api_version_ { api_version },
-          is_secure_ { false },
-          is_valid_ { true } {
+            : hostname_ { hostname },
+              port_ { port },
+              api_version_ { api_version },
+              is_secure_ { false },
+              is_valid_ { true },
+              performed_query_url_ {} {
         checkHostname();
     }
 
@@ -165,15 +161,15 @@ class PuppetdbConnector {
                       const std::string& client_key_path,
                       const int port = PUPPETDB_SECURE_PORT,
                       const ApiVersion api_version = API_VERSION_DEFAULT)
-        : hostname_ { hostname },
-          port_ { port },
-          api_version_ { api_version },
-          ca_crt_path_ { ca_crt_path },
-          client_crt_path_ { client_crt_path },
-          client_key_path_ { client_key_path },
-          is_secure_ { true },
-          is_valid_ { true } {
-
+            : hostname_ { hostname },
+              port_ { port },
+              api_version_ { api_version },
+              ca_crt_path_ { ca_crt_path },
+              client_crt_path_ { client_crt_path },
+              client_key_path_ { client_key_path },
+              is_secure_ { true },
+              is_valid_ { true },
+              performed_query_url_ {} {
         if (!checkHostname()) {
             return;
         }
@@ -239,7 +235,6 @@ class PuppetdbConnector {
     }
 
   private:
-
     // PuppetDB host, port, and api version
     std::string hostname_;
     int port_;
@@ -307,7 +302,6 @@ class PuppetdbConnector {
 
     // NB: this is virtual to enable mocking
     virtual std::string setupAndPerform(Query& query) {
-
         std::string result_buffer {};
 
         // libcurl handle

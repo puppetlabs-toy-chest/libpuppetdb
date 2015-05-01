@@ -17,7 +17,6 @@
 
 namespace LibPuppetdb {
 
-
 // Mock classes
 
 class MockURLConnector : public PuppetdbConnector {
@@ -35,12 +34,9 @@ class MockSetupConnector : public PuppetdbConnector {
     MOCK_METHOD1(setupAndPerform, std::string(Query& query));
 };
 
-
-
 // Testing the PuppetDB query
 
 class QueryTest : public ::testing::Test {};
-
 
 TEST_F(QueryTest, validQuery) {
     Query query {"facter"};
@@ -90,13 +86,10 @@ TEST_F(QueryTest, getQueryComponentsWithQueryString) {
     EXPECT_EQ(expected_query, obtained_query);
 }
 
-
 // Testing the PuppetDB connector
 
 class ConnectionTest : public ::testing::Test {
-
   protected:
-
     CURL* curl_handle_;
 
     virtual void SetUp() {
