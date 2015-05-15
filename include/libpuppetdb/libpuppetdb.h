@@ -18,18 +18,23 @@
  * See example1.cpp and refer to README.
  *
  *
+ * REQUIREMENTS
+ *
+ * - C++11 compiler
+ * - libcurl, SSL-enabled for secure connections
+ *
+ *
  * ASSUMPTIONS
  *
- * - C++11
  * - query format (query string is optional):
  *   {prot}://{hostname}:{port}/{version}/{endpoint}?query=<query_string>
  * - it is up to the client program to provide an endpoint compatible
  *   with the specified API version
  * - it is up to the client program to provide the query string in
  *   the puppetdb language and to process results, i.e.:
- *      - the interface expects the query string as a string argument;
- *      - the interface returns the json result data as a string.
- * - secure connection requires ca_cert, node_cert, and private_key.
+ *      - the interface expects the query string as a string argument
+ *      - the interface returns the json result data as a string
+ * - secure connection requires ca_cert, node_cert, and private_key
  *
  */
 
