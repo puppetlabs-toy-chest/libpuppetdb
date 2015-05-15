@@ -68,21 +68,21 @@ TEST_F(QueryTest, setAndGetErrorCode) {
 }
 
 TEST_F(QueryTest, getQueryComponents) {
-    std::string endpoint {"eggs"};
-    Query query {endpoint};
+    std::string endpoint { "eggs" };
+    Query query { endpoint };
 
     EXPECT_EQ(endpoint, query.getEndpoint());
     EXPECT_EQ("", query.getQueryString());
 }
 
 TEST_F(QueryTest, getQueryComponentsWithQueryString) {
-    std::string endpoint {"foo"};
-    std::string query_string {"bar"};
-    std::string expected_query {endpoint + "?query=" + query_string};
-    Query query {endpoint, query_string};
+    std::string endpoint { "foo" };
+    std::string query_string { "bar" };
+    std::string expected_query { endpoint + "?query=" + query_string };
+    Query query { endpoint, query_string };
 
-    std::string obtained_query {query.getEndpoint() + "?query="
-                                + query.getQueryString()};
+    std::string obtained_query { query.getEndpoint() + "?query="
+                                 + query.getQueryString() };
     EXPECT_EQ(expected_query, obtained_query);
 }
 
@@ -116,9 +116,9 @@ TEST_F(ConnectionTest, ValidConnectionWithoutSSL) {
 }
 
 TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
-    PuppetdbConnector connector {"spam"};
-    Query query("facts");
-    std::string expected_url {"http://spam:8080/v4/facts"};
+    PuppetdbConnector connector { "spam" };
+    Query query { "facts" };
+    std::string expected_url { "http://spam:8080/v4/facts" };
 
     EXPECT_FALSE(connector.isSecure());
     EXPECT_TRUE(connector.isValid());
@@ -170,33 +170,33 @@ TEST_F(ConnectionTest, performQueryWithSimpleResult) {
     EXPECT_CALL(mock_connector, setupAndPerform(testing::_))
         .WillOnce(testing::Return("simple_result"));
 
-    std::string result = mock_connector.performQuery(query);
+    std::string result { mock_connector.performQuery(query) };
 
     EXPECT_EQ("simple_result", result);
     EXPECT_EQ("", mock_connector.getErrorMessage());
 }
 
 TEST_F(ConnectionTest, httpQuery) {
-    MockURLConnector mock_connector {"bar"};
-    Query query {"foo"};
+    MockURLConnector mock_connector { "bar" };
+    Query query { "foo" };
     EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"));
 
-    std::string result = mock_connector.performQuery(query);
+    std::string result { mock_connector.performQuery(query) };
 
     EXPECT_FALSE(result.size() == 0);
 }
 
 TEST_F(ConnectionTest, multipleHttpQueries) {
-    MockURLConnector mock_connector {"spam"};
-    Query first_query {"eggs"};
-    Query second_query {"beans"};
+    MockURLConnector mock_connector { "spam" };
+    Query first_query { "eggs" };
+    Query second_query { "beans" };
     EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"))
         .WillOnce(testing::Return("http://goolge.com"));
 
-    std::string first_result = mock_connector.performQuery(first_query);
-    std::string second_result = mock_connector.performQuery(second_query);
+    std::string first_result { mock_connector.performQuery(first_query) };
+    std::string second_result { mock_connector.performQuery(second_query) };
 
     EXPECT_FALSE(first_result.size() == 0);
     EXPECT_FALSE(second_result.size() == 0);
@@ -208,10 +208,11 @@ TEST_F(ConnectionTest, multipleHttpQueries) {
             "master",
             "/etc/puppetlabs/puppet/ssl/certs/ca.pem",
             "/etc/puppetlabs/puppet/ssl/certs/centos65a.pem",
-            "/etc/puppetlabs/puppet/ssl/private_keys/centos65a.pem"};
-        Query query {"facts"};
+            "/etc/puppetlabs/puppet/ssl/private_keys/centos65a.pem" };
+        Query query { "facts" };
         std::string result = connector.performQuery(query);
         std::cout << "Facter result:\n" << result << "\n\n";
+
         EXPECT_FALSE(result.size() == 0);
     }
 #endif

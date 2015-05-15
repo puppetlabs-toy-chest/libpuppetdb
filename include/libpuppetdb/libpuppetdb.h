@@ -233,12 +233,12 @@ class PuppetdbConnector {
 
         if (!query_str.empty()) {
             // URL encode
-            char* encoded_query = curl_easy_escape(
-                curl, query_str.c_str(), 0);
+            char* encoded_query = curl_easy_escape(curl, query_str.c_str(), 0);
 
             if (encoded_query == nullptr) {
                 return "";
             }
+
             endpoint_and_query += "?query=" + std::string { encoded_query };
 
             // Free the memory used by curl_easy_escape()
@@ -346,6 +346,7 @@ class PuppetdbConnector {
                     query.setErrorCode(static_cast<int>(return_code));
                 }
             }
+
             // Close all libcurl connections
             curl_easy_cleanup(curl);
         }
