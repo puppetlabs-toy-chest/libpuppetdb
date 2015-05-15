@@ -39,32 +39,19 @@ class MockSetupConnector : public PuppetdbConnector {
 class QueryTest : public ::testing::Test {};
 
 TEST_F(QueryTest, validQuery) {
-    Query query {"facter"};
-    Query query_with_query {"nodes", "puppetdb_query"};
+    EXPECT_NO_THROW(Query("facter"));
+}
 
-    EXPECT_TRUE(query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::OK), query.getErrorCode());
-    EXPECT_TRUE(query_with_query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::OK), query_with_query.getErrorCode());
+TEST_F(QueryTest, validQueryWithQueryString) {
+    EXPECT_NO_THROW(Query("nodes", "puppetdb_query"));
 }
 
 TEST_F(QueryTest, invalidQuery) {
-    Query query {""};
-    Query query_with_query {"", "puppetdb_query"};
-
-    EXPECT_FALSE(query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::INVALID_QUERY), query.getErrorCode());
-    EXPECT_FALSE(query_with_query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::INVALID_QUERY),
-              query_with_query.getErrorCode());
+    EXPECT_THROW(Query(""), query_error);
 }
 
-TEST_F(QueryTest, setAndGetErrorCode) {
-    Query query {"spam"};
-    int error_code {42};
-    query.setErrorCode(error_code);
-
-    EXPECT_EQ(error_code, query.getErrorCode());
+TEST_F(QueryTest, invalidQueryWithQueryString) {
+    EXPECT_THROW(Query("", "puppetdb_query"), query_error);
 }
 
 TEST_F(QueryTest, getQueryComponents) {
@@ -101,18 +88,18 @@ class ConnectionTest : public ::testing::Test {
     }
 };
 
-
-TEST_F(ConnectionTest, ConnectWithoutSSL) {
-    PuppetdbConnector connector {"spam", 42, ApiVersion::v2};
-
-    EXPECT_FALSE(connector.isSecure());
+TEST_F(ConnectionTest, ValidConnector) {
+    EXPECT_NO_THROW(PuppetdbConnector("eggs"));
 }
 
-TEST_F(ConnectionTest, ValidConnectionWithoutSSL) {
-    PuppetdbConnector connector {"eggs", 42, ApiVersion::v3};
+TEST_F(ConnectionTest, ValidConnectorWithoutSSL) {
+    EXPECT_NO_THROW(PuppetdbConnector("eggs", 42, ApiVersion::v3));
+}
 
-    EXPECT_TRUE(connector.isValid());
-    EXPECT_EQ("", connector.getErrorMessage());
+TEST_F(ConnectionTest, isSecure) {
+    PuppetdbConnector connector { "spam", 42, ApiVersion::v2 };
+
+    EXPECT_FALSE(connector.isSecure());
 }
 
 TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
@@ -121,51 +108,45 @@ TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
     std::string expected_url { "http://spam:8080/v4/facts" };
 
     EXPECT_FALSE(connector.isSecure());
-    EXPECT_TRUE(connector.isValid());
     EXPECT_EQ(expected_url, connector.getQueryUrl(query, curl_handle_));
 }
 
-TEST_F(ConnectionTest, GetPerformedQueryUrl) {
-    PuppetdbConnector connector {"eggs"};
-    Query query("nodes");
-    std::string expected_url {"http://eggs:8080/v4/nodes"};
-    EXPECT_EQ("", connector.getPerformedQueryUrl());
-    connector.performQuery(query);
-    EXPECT_EQ(expected_url, connector.getPerformedQueryUrl());
-}
-
 TEST_F(ConnectionTest, ConnectWithoutHost) {
-    PuppetdbConnector connector {""};
-
-    EXPECT_FALSE(connector.isValid()); // No hostname!
-    EXPECT_EQ("No hostname was specified.", connector.getErrorMessage());
+    EXPECT_THROW(PuppetdbConnector(""), connector_error);
 }
 
-TEST_F(ConnectionTest, ConnectWithSSL) {
-    PuppetdbConnector connector {"fake_host",
-                                 "/fake/path/ca.cer",
-                                 "/fake/path/host.cer",
-                                 "/fake/path/host.key"};
+TEST_F(ConnectionTest, ConnectWithSSLNonExistentCerts) {
+    auto ctor = []() { PuppetdbConnector("fake_host",
+                                         "/fake/path/ca.cer",
+                                         "/fake/path/host.cer",
+                                         "/fake/path/host.key");
+                     };
+
+    EXPECT_THROW(ctor(), connector_error);
+}
+
+TEST_F(ConnectionTest, ConnectWithSSLValid) {
+    auto ctor = []() { PuppetdbConnector("fake_host",
+                                         "./resources/ca_crt.pem",
+                                         "./resources/test_crt.pem",
+                                         "./resources/test_key.pem");
+                     };
+
+    EXPECT_NO_THROW(ctor());
+}
+
+TEST_F(ConnectionTest, ConnectWithSSLIsSecure) {
+    PuppetdbConnector connector { "fake_host",
+                                  "./resources/ca_crt.pem",
+                                  "./resources/test_crt.pem",
+                                  "./resources/test_key.pem" };
 
     EXPECT_TRUE(connector.isSecure());
-    EXPECT_FALSE(connector.isValid()); // Certificates are fake!
-    EXPECT_EQ("Invalid certificate: /fake/path/ca.cer",
-              connector.getErrorMessage());
-}
-
-TEST_F(ConnectionTest, performQueryWithInvalidConnection) {
-    PuppetdbConnector connector {""};
-    Query query {"spam"};
-    std::string result = connector.performQuery(query);
-
-    EXPECT_EQ("", result);
 }
 
 TEST_F(ConnectionTest, performQueryWithSimpleResult) {
-    MockSetupConnector mock_connector {"bar"};
-    Query query {"foo"};
-
-    EXPECT_TRUE(mock_connector.isValid());
+    MockSetupConnector mock_connector { "bar" };
+    Query query { "foo" };
 
     EXPECT_CALL(mock_connector, setupAndPerform(testing::_))
         .WillOnce(testing::Return("simple_result"));
@@ -173,7 +154,6 @@ TEST_F(ConnectionTest, performQueryWithSimpleResult) {
     std::string result { mock_connector.performQuery(query) };
 
     EXPECT_EQ("simple_result", result);
-    EXPECT_EQ("", mock_connector.getErrorMessage());
 }
 
 TEST_F(ConnectionTest, httpQuery) {
