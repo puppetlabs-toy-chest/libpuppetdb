@@ -16,17 +16,17 @@ calling PuppetdbConnector::performQuery, that returns the query results
 
 ## Errors
 
-libpuppetdb does not raise exceptions. You can check the validity of a
-connection or a query by calling the isValid method; both classes expose it.
+lippuppetdb errors follow a class hierarchy where the parent class is
+`libpuppetdb_error`. Specific errors are:
 
-To provide more information, the PuppetdbConnector class has the getErrorMessage
-method that returns a string message about why the connector instantiation
-failed.
-Also, the Query class provides getErrorCode, a method that gives the return code
-provided by libcurl after the query execution. Note that the libcurl codes are
-in the [0, 99] range (please refer to the libcurl documentation) whereas an
-integer greater than 100 indicates a failure during the creation of the
-connection or query.
+| name | description
+|------|------|------------
+| query_error | thrown by the Query constructor
+| connector_error | thrown by the PuppetdbConnector constructor
+| processing_error | thrown by the PuppetdbConnector::performQuery method
+
+Note that `processing_error` objects contain an indication of possible
+libcurl errors.
 
 ## Create a connection
 

@@ -39,50 +39,37 @@ class MockSetupConnector : public PuppetdbConnector {
 class QueryTest : public ::testing::Test {};
 
 TEST_F(QueryTest, validQuery) {
-    Query query {"facter"};
-    Query query_with_query {"nodes", "puppetdb_query"};
+    EXPECT_NO_THROW(Query("facter"));
+}
 
-    EXPECT_TRUE(query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::OK), query.getErrorCode());
-    EXPECT_TRUE(query_with_query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::OK), query_with_query.getErrorCode());
+TEST_F(QueryTest, validQueryWithQueryString) {
+    EXPECT_NO_THROW(Query("nodes", "puppetdb_query"));
 }
 
 TEST_F(QueryTest, invalidQuery) {
-    Query query {""};
-    Query query_with_query {"", "puppetdb_query"};
-
-    EXPECT_FALSE(query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::INVALID_QUERY), query.getErrorCode());
-    EXPECT_FALSE(query_with_query.isValid());
-    EXPECT_EQ(static_cast<int>(ErrorCode::INVALID_QUERY),
-              query_with_query.getErrorCode());
+    EXPECT_THROW(Query(""), query_error);
 }
 
-TEST_F(QueryTest, setAndGetErrorCode) {
-    Query query {"spam"};
-    int error_code {42};
-    query.setErrorCode(error_code);
-
-    EXPECT_EQ(error_code, query.getErrorCode());
+TEST_F(QueryTest, invalidQueryWithQueryString) {
+    EXPECT_THROW(Query("", "puppetdb_query"), query_error);
 }
 
 TEST_F(QueryTest, getQueryComponents) {
-    std::string endpoint {"eggs"};
-    Query query {endpoint};
+    std::string endpoint { "eggs" };
+    Query query { endpoint };
 
     EXPECT_EQ(endpoint, query.getEndpoint());
     EXPECT_EQ("", query.getQueryString());
 }
 
 TEST_F(QueryTest, getQueryComponentsWithQueryString) {
-    std::string endpoint {"foo"};
-    std::string query_string {"bar"};
-    std::string expected_query {endpoint + "?query=" + query_string};
-    Query query {endpoint, query_string};
+    std::string endpoint { "foo" };
+    std::string query_string { "bar" };
+    std::string expected_query { endpoint + "?query=" + query_string };
+    Query query { endpoint, query_string };
 
-    std::string obtained_query {query.getEndpoint() + "?query="
-                                + query.getQueryString()};
+    std::string obtained_query { query.getEndpoint() + "?query="
+                                 + query.getQueryString() };
     EXPECT_EQ(expected_query, obtained_query);
 }
 
@@ -101,102 +88,95 @@ class ConnectionTest : public ::testing::Test {
     }
 };
 
-
-TEST_F(ConnectionTest, ConnectWithoutSSL) {
-    PuppetdbConnector connector {"spam", 42, ApiVersion::v2};
-
-    EXPECT_FALSE(connector.isSecure());
+TEST_F(ConnectionTest, ValidConnector) {
+    EXPECT_NO_THROW(PuppetdbConnector("eggs"));
 }
 
-TEST_F(ConnectionTest, ValidConnectionWithoutSSL) {
-    PuppetdbConnector connector {"eggs", 42, ApiVersion::v3};
+TEST_F(ConnectionTest, ValidConnectorWithoutSSL) {
+    EXPECT_NO_THROW(PuppetdbConnector("eggs", 42, ApiVersion::v3));
+}
 
-    EXPECT_TRUE(connector.isValid());
-    EXPECT_EQ("", connector.getErrorMessage());
+TEST_F(ConnectionTest, isSecure) {
+    PuppetdbConnector connector { "spam", 42, ApiVersion::v2 };
+
+    EXPECT_FALSE(connector.isSecure());
 }
 
 TEST_F(ConnectionTest, ConnectDefaultPortAndVersion) {
-    PuppetdbConnector connector {"spam"};
-    Query query("facts");
-    std::string expected_url {"http://spam:8080/v4/facts"};
+    PuppetdbConnector connector { "spam" };
+    Query query { "facts" };
+    std::string expected_url { "http://spam:8080/v4/facts" };
 
     EXPECT_FALSE(connector.isSecure());
-    EXPECT_TRUE(connector.isValid());
     EXPECT_EQ(expected_url, connector.getQueryUrl(query, curl_handle_));
 }
 
-TEST_F(ConnectionTest, GetPerformedQueryUrl) {
-    PuppetdbConnector connector {"eggs"};
-    Query query("nodes");
-    std::string expected_url {"http://eggs:8080/v4/nodes"};
-    EXPECT_EQ("", connector.getPerformedQueryUrl());
-    connector.performQuery(query);
-    EXPECT_EQ(expected_url, connector.getPerformedQueryUrl());
-}
-
 TEST_F(ConnectionTest, ConnectWithoutHost) {
-    PuppetdbConnector connector {""};
-
-    EXPECT_FALSE(connector.isValid()); // No hostname!
-    EXPECT_EQ("No hostname was specified.", connector.getErrorMessage());
+    EXPECT_THROW(PuppetdbConnector(""), connector_error);
 }
 
-TEST_F(ConnectionTest, ConnectWithSSL) {
-    PuppetdbConnector connector {"fake_host",
-                                 "/fake/path/ca.cer",
-                                 "/fake/path/host.cer",
-                                 "/fake/path/host.key"};
+TEST_F(ConnectionTest, ConnectWithSSLNonExistentCerts) {
+    auto ctor = []() { PuppetdbConnector("fake_host",
+                                         "/fake/path/ca.cer",
+                                         "/fake/path/host.cer",
+                                         "/fake/path/host.key");
+                     };
+
+    EXPECT_THROW(ctor(), connector_error);
+}
+
+TEST_F(ConnectionTest, ConnectWithSSLValid) {
+    auto ctor = []() { PuppetdbConnector("fake_host",
+                                         "./resources/ca_crt.pem",
+                                         "./resources/test_crt.pem",
+                                         "./resources/test_key.pem");
+                     };
+
+    EXPECT_NO_THROW(ctor());
+}
+
+TEST_F(ConnectionTest, ConnectWithSSLIsSecure) {
+    PuppetdbConnector connector { "fake_host",
+                                  "./resources/ca_crt.pem",
+                                  "./resources/test_crt.pem",
+                                  "./resources/test_key.pem" };
 
     EXPECT_TRUE(connector.isSecure());
-    EXPECT_FALSE(connector.isValid()); // Certificates are fake!
-    EXPECT_EQ("Invalid certificate: /fake/path/ca.cer",
-              connector.getErrorMessage());
-}
-
-TEST_F(ConnectionTest, performQueryWithInvalidConnection) {
-    PuppetdbConnector connector {""};
-    Query query {"spam"};
-    std::string result = connector.performQuery(query);
-
-    EXPECT_EQ("", result);
 }
 
 TEST_F(ConnectionTest, performQueryWithSimpleResult) {
-    MockSetupConnector mock_connector {"bar"};
-    Query query {"foo"};
-
-    EXPECT_TRUE(mock_connector.isValid());
+    MockSetupConnector mock_connector { "bar" };
+    Query query { "foo" };
 
     EXPECT_CALL(mock_connector, setupAndPerform(testing::_))
         .WillOnce(testing::Return("simple_result"));
 
-    std::string result = mock_connector.performQuery(query);
+    std::string result { mock_connector.performQuery(query) };
 
     EXPECT_EQ("simple_result", result);
-    EXPECT_EQ("", mock_connector.getErrorMessage());
 }
 
 TEST_F(ConnectionTest, httpQuery) {
-    MockURLConnector mock_connector {"bar"};
-    Query query {"foo"};
+    MockURLConnector mock_connector { "bar" };
+    Query query { "foo" };
     EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"));
 
-    std::string result = mock_connector.performQuery(query);
+    std::string result { mock_connector.performQuery(query) };
 
     EXPECT_FALSE(result.size() == 0);
 }
 
 TEST_F(ConnectionTest, multipleHttpQueries) {
-    MockURLConnector mock_connector {"spam"};
-    Query first_query {"eggs"};
-    Query second_query {"beans"};
+    MockURLConnector mock_connector { "spam" };
+    Query first_query { "eggs" };
+    Query second_query { "beans" };
     EXPECT_CALL(mock_connector, getQueryUrl(testing::_, testing::_))
         .WillOnce(testing::Return("http://example.com"))
         .WillOnce(testing::Return("http://goolge.com"));
 
-    std::string first_result = mock_connector.performQuery(first_query);
-    std::string second_result = mock_connector.performQuery(second_query);
+    std::string first_result { mock_connector.performQuery(first_query) };
+    std::string second_result { mock_connector.performQuery(second_query) };
 
     EXPECT_FALSE(first_result.size() == 0);
     EXPECT_FALSE(second_result.size() == 0);
@@ -208,10 +188,11 @@ TEST_F(ConnectionTest, multipleHttpQueries) {
             "master",
             "/etc/puppetlabs/puppet/ssl/certs/ca.pem",
             "/etc/puppetlabs/puppet/ssl/certs/centos65a.pem",
-            "/etc/puppetlabs/puppet/ssl/private_keys/centos65a.pem"};
-        Query query {"facts"};
+            "/etc/puppetlabs/puppet/ssl/private_keys/centos65a.pem" };
+        Query query { "facts" };
         std::string result = connector.performQuery(query);
         std::cout << "Facter result:\n" << result << "\n\n";
+
         EXPECT_FALSE(result.size() == 0);
     }
 #endif
